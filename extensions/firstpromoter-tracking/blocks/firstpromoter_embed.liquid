@@ -1,0 +1,32 @@
+{%- comment -%}
+  FirstPromoter tracking (app embed).
+  The merchant's CID is stored by the app in an app-owned metafield
+  (app.metafields.firstpromoter.cid) when the settings page is saved.
+  Nothing is rendered until a CID is configured.
+{%- endcomment -%}
+{%- assign fp_cid = app.metafields.firstpromoter.cid.value | strip -%}
+{%- if fp_cid != blank -%}
+  <script>
+    window.__FPR_CONFIG = {
+      cid: {{ fp_cid | json }},
+      respectConsent: {{ block.settings.respect_consent | json }}
+    };
+  </script>
+  <script src="{{ 'firstpromoter.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "FirstPromoter tracking",
+  "target": "head",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "respect_consent",
+      "label": "Wait for marketing consent",
+      "info": "Only load tracking after the visitor accepts marketing cookies in Shopify's cookie banner. Turn off only if your store does not need cookie consent.",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

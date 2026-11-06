@@ -1,0 +1,69 @@
+// Production runs on PostgreSQL (multi-tenant app, several instances).
+// Set DATABASE_URL, e.g. postgresql://user:pass@host:5432/firstpromoter_shopify
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+
+  @@index([shop])
+}
+
+// One row per connected shop. The API key is stored encrypted (AES-256-GCM).
+model ShopSettings {
+  shop         String   @id
+  accountId    String
+  apiKeyEnc    String
+  // Orders with an affiliate coupon code; couponPriority is "link" or "code".
+  trackCoupons   Boolean @default(true)
+  couponPriority String  @default("link")
+  trackSales   Boolean  @default(true)
+  trackRefunds Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Short audit trail shown on the settings page and used for support.
+// Holds order ids and outcomes only, never customer data.
+model EventLog {
+  id         Int      @id @default(autoincrement())
+  shop       String
+  type       String
+  eventId    String
+  orderId    String
+  status     String
+  httpStatus Int?
+  message    String?
+  // Minor units sent to FirstPromoter (sale base or refund amount); sales also keep
+  // what the buyer paid for the goods, so refunds can be scaled and capped.
+  amount     Int?
+  goodsPaid  Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([shop, type, eventId])
+  @@index([shop, createdAt])
+}
