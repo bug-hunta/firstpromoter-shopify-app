@@ -4,9 +4,9 @@
 #   npm run config:use -- shopify.app.production.toml
 #   npm run deploy
 
-client_id = "replace-with-production-client-id"
+client_id = "61b563aaad9de8df79b1e78a0bd6d134"
 name = "FirstPromoter"
-application_url = "https://YOUR-SERVICE.onrender.com"
+application_url = "https://firstpromoter-shopify-app.onrender.com"
 embedded = true
 
 [build]
@@ -49,6 +49,6 @@ scopes = "read_orders"
 
 [auth]
 redirect_urls = [
-  "https://YOUR-SERVICE.onrender.com/auth/callback",
-  "https://YOUR-SERVICE.onrender.com/api/auth",
+  "https://firstpromoter-shopify-app.onrender.com/auth/callback",
+  "https://firstpromoter-shopify-app.onrender.com/api/auth",
 ]
