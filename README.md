@@ -50,6 +50,35 @@ npm run dev                   # Shopify CLI: tunnel, install on a dev store
 Set `client_id` in `shopify.app.toml` (or run `npm run config:link`), then `npm run deploy`
 to release the extension and webhook config.
 
+## Production hosting (Render)
+
+Do not use shared cPanel or Render **Free**: the process must stay up for Shopify webhooks.
+This repo includes `render.yaml` (paid web service + Postgres).
+
+1. Push the repo to GitHub and open [Render Blueprint](https://dashboard.render.com/blueprints).
+2. Apply `render.yaml`. Use the **starter** web plan (not Free).
+3. In the web service env vars, set:
+   - `SHOPIFY_API_KEY` / `SHOPIFY_API_SECRET` — production Partner app
+   - `SHOPIFY_APP_URL` — `https://<service>.onrender.com` (no trailing slash)
+   - `ENCRYPTION_KEY` — `openssl rand -base64 32` (save this; rotating it breaks stored API keys)
+4. `DATABASE_URL` is filled from the Blueprint database. Confirm logs show `prisma migrate deploy` and `GET /health` → `ok`.
+5. In Partners, set App URL and redirect URLs to that origin (`/auth/callback` and `/api/auth`).
+6. Point the CLI at the production app, put the Render URL in `shopify.app.production.toml`, then:
+
+```bash
+npm run config:use -- shopify.app.production.toml
+npm run deploy
+```
+
+`npm run deploy` publishes the theme extension and webhook subscriptions. It does not replace the Render deploy.
+
+Local Docker (same process as Render, port 3000):
+
+```bash
+docker build -t firstpromoter-shopify .
+docker run --env-file .env -p 3000:3000 firstpromoter-shopify
+```
+
 ## Before submitting to the App Store
 
 Not yet done or verified in this repository:
@@ -64,8 +93,8 @@ Not yet done or verified in this repository:
 4. **Duplicate-referral behaviour.** Verify with two affiliates and the same buyer email, and
    with the FirstPromoter setting "Allow Duplicate Referral Emails" on and off. Also verify that a
    refund sent with `uid` only is matched to a sale created with `uid` + `email`.
-5. **Hosting**: PostgreSQL, `ENCRYPTION_KEY` in a secret manager, HTTPS, monitoring and alerts on
-   webhook 5xx rates. Rotate `ENCRYPTION_KEY` with a re-encryption script if ever needed.
+5. **Hosting ops**: monitoring and alerts on webhook 5xx rates. Rotate `ENCRYPTION_KEY` with a
+   re-encryption script if ever needed.
 6. **Listing assets**: privacy policy, support contact, screenshots, and an install guide.
 7. **Review requirements**: Shopify's automated checks (Lighthouse impact of the app embed,
    billing if you charge, embedded admin UX).

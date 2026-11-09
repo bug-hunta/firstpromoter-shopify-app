@@ -31,3 +31,5 @@ jobs:
 
       - name: Build application
         run: npm run build
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/ci
